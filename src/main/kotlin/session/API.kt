@@ -7,6 +7,7 @@ import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -53,7 +54,6 @@ class API {
     suspend fun logout() {
         println("would you like to logout? y/n")
         val response = readln()
-
         val logout = client.post(
             "${url}/auth/session/logout"
         ) {
@@ -73,4 +73,30 @@ class API {
             logout()
         }
     }
+    suspend fun fetchSessions()
+    {
+        println("would you like a list of currently logged in sessions?")
+        val sessions = client.get(
+            "${url}/auth/session/all"
+        ) {
+            header(
+                key = "X-Session-Token",
+                value = token
+            )
+        }
+        // todo
+        // can't do sessions.status.OK. Weird import issue with Ktor :/
+            if (sessions.status.value == 200)
+            {
+                val sessionsList = sessions.body<List<Response.Sessions>>()
+                sessionsList.forEach {
+                    println(it.name)
+                }
+
+            }
+        else{
+            println()
+            }
+    }
+
 }

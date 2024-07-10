@@ -4,7 +4,7 @@ import session.API
 suspend fun main() {
     val sessionAPI = API()
     sessionAPI.login()
-    sessionAPI.logout()
+    sessionAPI.fetchSessions()
 }
 
 

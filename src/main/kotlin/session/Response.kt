@@ -21,4 +21,10 @@ sealed class Response {
         @SerialName("p256dh") val p256dh: String,
         @SerialName("auth") val auth: String
     )*/
+
+    @Serializable
+    data class Sessions(
+        @SerialName("_id") val id: String,
+        @SerialName("name") val name: String
+    )
 }
