@@ -49,7 +49,6 @@ class API {
             println("you have failed to login: Response ${response.result}")
             login()
         }
-
     }
 
     suspend fun logout() {
@@ -100,7 +99,7 @@ class API {
         val response = readln()
 
         val sessions = client.delete(
-            "${url}/auth/session/all"
+            "${url}/auth/session/"
         ) {
             header(
                 key = "X-Session-Token", value = token
@@ -115,6 +114,45 @@ class API {
         } else {
             exitProcess(-1)
         }
+    }
 
+    suspend fun revokeSession() {
+        println("Which session would you like to delete?")
+        val response = readln()
+        val sessions = client.delete(
+            "${url}/auth/session/$response"
+        ) {
+            header(
+                key = "X-Session-Token", value = token
+            )
+        }
+        if (sessions.status.isSuccess()) {
+            println("You have successfully revoked that session")
+        } else {
+            println("An unknown error has occurred.")
+        }
+    }
+
+    suspend fun editSession() {
+        println("Which session would you like to update?")
+        val response = readln()
+
+        println("What would you like the updated session name to be?")
+        val friendlyNameNew = readln()
+        val session = client.patch("${url}/auth/session/$response") {
+            contentType(ContentType.Application.Json)
+            header(
+                key = "X-Session-Token", value = token
+            )
+            setBody(
+                Json.encodeToString(Requests.FriendlyName(friendlyNameNew))
+            )
+        }
+        val sessionResponse = session.body<Response.Sessions>()
+        if (session.status.value == 200) {
+            println("Updated session data for ${sessionResponse.id} \n Current Name: ${sessionResponse.name}")
+        } else {
+            println("Failed to update name based on the supplied id")
+        }
     }
 }
