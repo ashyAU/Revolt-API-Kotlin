@@ -51,6 +51,7 @@ class API {
         }
 
     }
+
     suspend fun logout() {
         println("would you like to logout? y/n")
         val response = readln()
@@ -58,8 +59,7 @@ class API {
             "${url}/auth/session/logout"
         ) {
             header(
-                key = "X-Session-Token",
-                value = token
+                key = "X-Session-Token", value = token
             )
         }
         if (response.lowercase(Locale.getDefault()) == "y") {
@@ -73,30 +73,48 @@ class API {
             logout()
         }
     }
-    suspend fun fetchSessions()
-    {
+
+    suspend fun fetchSessions() {
         println("would you like a list of currently logged in sessions?")
         val sessions = client.get(
             "${url}/auth/session/all"
         ) {
             header(
-                key = "X-Session-Token",
-                value = token
+                key = "X-Session-Token", value = token
             )
         }
-        // todo
         // can't do sessions.status.OK. Weird import issue with Ktor :/
-            if (sessions.status.value == 200)
-            {
-                val sessionsList = sessions.body<List<Response.Sessions>>()
-                sessionsList.forEach {
-                    println(it.name)
-                }
+        if (sessions.status.value == 200) {
+            val sessionsList = sessions.body<List<Response.Sessions>>()
+            sessionsList.forEach {
+                println(it.name)
+            }
 
-            }
-        else{
-            println()
-            }
+        } else {
+            println("An unknown error has occurred")
+        }
     }
 
+    suspend fun deleteSessions() {
+        println("Log out of all other sessions?")
+        val response = readln()
+
+        val sessions = client.delete(
+            "${url}/auth/session/all"
+        ) {
+            header(
+                key = "X-Session-Token", value = token
+            )
+        }
+        if (response.lowercase(Locale.getDefault()) == "y") {
+            if (sessions.status.isSuccess()) {
+                println("You have successfully signed out of all other sessions")
+            } else {
+                println("An unknown error has occurred.")
+            }
+        } else {
+            exitProcess(-1)
+        }
+
+    }
 }

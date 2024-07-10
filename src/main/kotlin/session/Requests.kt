@@ -9,5 +9,4 @@ sealed class Requests {
         val email: String,
         val password: String
     )
-
 }
