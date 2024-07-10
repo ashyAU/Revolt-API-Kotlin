@@ -1,1 +1,3 @@
-This projects purpose is to map out https://api.revolt.chat in Kotlin. This will allow for future projects to take a more streamlined approach. Including federation.
+## Revolt API Kotlin 
+The purpose of this project is to create a more streamlined approach utilizing the API with Kotlin, with seperate packages being available depending on the type of data you need. 
+All API requests are developed using Ktor and OKHttp.
