@@ -54,7 +54,8 @@ class API {
             println("${request.status.description} ${request.status.value}")
         }
     }
-    // need to get captcha working 
+
+    // need to get captcha working
     suspend fun resendVerification() {
         println("What is the email associated with the account?")
         val email = readln()
@@ -71,4 +72,24 @@ class API {
             println("${request.status.description} ${request.status.value}")
         }
     }
+
+    // todo awaiting clarification on how the token is obtained
+    suspend fun confirmAccountDeletion() {
+        println("Please enter the token of the account you wish to delete")
+    }
+
+    // Requests to have the account deleted
+    suspend fun deleteAccount() {
+        println("what is the token associated with the current account")
+        val token = readln()
+        val request = client.post("${url}/auth/account/delete") {
+            header(key = "X-Session-Token", value = token)
+        }
+        if (request.status.value == 204) {
+            println("please check your email for a confirmation to delete your account")
+        } else {
+            println("${request.status.description}, ${request.status.value}")
+        }
+    }
+
 }
