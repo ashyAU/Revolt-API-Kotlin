@@ -24,4 +24,10 @@ sealed class Requests {
         @SerialName("current_password") val currentPassword: String
     )
 
+    @Serializable
+    data class ChangeEmail(
+        @SerialName("email") val email: String,
+        @SerialName("current_password") val currentPassword: String
+    )
+
 }

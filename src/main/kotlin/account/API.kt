@@ -146,4 +146,31 @@ class API {
             println("${request.status.description}, ${request.status.value}")
         }
     }
+
+    suspend fun changeEmail(
+        email: String,
+        currentPassword: String,
+        token: String
+    ) {
+        val request = client.patch("${url}/auth/account/change/email") {
+            contentType(ContentType.Application.Json)
+            header(
+                key = "X-Session-Token",
+                value = token
+            )
+            setBody(
+                Json.encodeToString(
+                    Requests.ChangeEmail(
+                        email = email,
+                        currentPassword = currentPassword
+                    )
+                )
+            )
+        }
+        if (request.status.value == 204) {
+            println("Password changed successfully.")
+        } else {
+            println("${request.status.description}, ${request.status.value}")
+        }
+    }
 }

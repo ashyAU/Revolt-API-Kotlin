@@ -6,8 +6,8 @@ import kotlinx.serialization.Serializable
 sealed class Requests {
     @Serializable
     data class Login(
-        val email: String,
-        val password: String,
+        @SerialName("email") val email: String,
+        @SerialName("password") val password: String,
         @SerialName("friendly_name") val friendlyName: String? = "default"
     )
     data class FriendlyName(
