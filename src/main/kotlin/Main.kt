@@ -3,9 +3,10 @@ import session.API
 
 suspend fun main() {
     val sessionAPI = API()
-    sessionAPI.login()
-    sessionAPI.deleteSessions()
-    sessionAPI.fetchSessions()
+    val accountAPI = cloud.tyty.account.API()
+
+
+    accountAPI.createAccount()
 }
 
 
