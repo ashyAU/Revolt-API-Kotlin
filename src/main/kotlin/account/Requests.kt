@@ -1,18 +1,27 @@
 package cloud.tyty.account
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 sealed class Requests {
     @Serializable
     data class CreateAccount(
-        val email: String,
-        val password: String,
-        val invite: String? = null,
-        val captcha: String? = null
+        @SerialName("email") val email: String,
+        @SerialName("password") val password: String,
+        @SerialName("invite") val invite: String? = null,
+        @SerialName("captcha") val captcha: String? = null
     )
+
     @Serializable
     data class ResendVerification(
-        val email: String,
-        val captcha: String? = null
+        @SerialName("email") val email: String,
+        @SerialName("captcha") val captcha: String? = null
     )
+
+    @Serializable
+    data class ChangePassword(
+        @SerialName("password") val password: String,
+        @SerialName("current_password") val currentPassword: String
+    )
+
 }

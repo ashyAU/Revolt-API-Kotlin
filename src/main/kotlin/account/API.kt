@@ -37,12 +37,12 @@ class API {
     }
 
     // Needs to get recaptcha enabled, will need to be done on the client
-    suspend fun createAccount() {
-        println("enter your new account email")
-        val email = readln()
-        println("enter your new account password")
-        val password = readln()
-        val createData = Requests.CreateAccount(email = email, password = password)
+    suspend fun createAccount(
+        email: String, password: String, invite: String? = null, captcha: String? = null
+    ) {
+        val createData = Requests.CreateAccount(
+            email = email, password = password, invite = invite, captcha = captcha
+        )
 
         val request = client.post("${url}/auth/account/create") {
             contentType(ContentType.Application.Json)
@@ -56,11 +56,12 @@ class API {
     }
 
     // need to get captcha working
-    suspend fun resendVerification() {
-        println("What is the email associated with the account?")
-        val email = readln()
-
-        val resendData = Requests.ResendVerification(email = email)
+    suspend fun resendVerification(
+        email: String, captcha: String? = null
+    ) {
+        val resendData = Requests.ResendVerification(
+            email = email, captcha = captcha
+        )
 
         val request = client.post("${url}/auth/account/reverify") {
             contentType(ContentType.Application.Json)
@@ -74,17 +75,19 @@ class API {
     }
 
     // todo awaiting clarification on how the token is obtained
-    suspend fun confirmAccountDeletion() {
-        println("Please enter the token of the account you wish to delete")
+    suspend fun confirmAccountDeletion(token: String) {
     }
 
     // Requests to have the account deleted
-    suspend fun deleteAccount() {
-        println("what is the token associated with the current account")
-        val token = readln()
+    suspend fun deleteAccount(
+        token: String
+    ) {
         val request = client.post("${url}/auth/account/delete") {
-            header(key = "X-Session-Token", value = token)
+            header(
+                key = "X-Session-Token", value = token
+            )
         }
+
         if (request.status.value == 204) {
             println("please check your email for a confirmation to delete your account")
         } else {
@@ -92,4 +95,55 @@ class API {
         }
     }
 
+    suspend fun fetchAccount(
+        token: String
+    ) {
+        val request = client.get("${url}/auth/account") {
+            header(
+                key = "X-Session-Token", value = token
+            )
+        }
+        if (request.status.value == 200) {
+            val body = request.body<Response.FetchAccount>()
+            println("${body.id}, ${body.email}")
+        } else {
+            println("${request.status.description}, ${request.status.value}")
+        }
+    }
+
+    suspend fun disableAccount(token: String) {
+        val request = client.post("${url}/auth/account/disable") {
+            header(
+                key = "X-Session-Token", value = token
+            )
+        }
+        if (request.status.value == 204) {
+            println("Your account is disabled")
+        } else {
+            println("${request.status.description}, ${request.status.value}")
+        }
+    }
+
+    suspend fun changePassword(
+        password: String, currentPassword: String, token: String
+    ) {
+        val request = client.patch("${url}/auth/account/change/password") {
+            contentType(ContentType.Application.Json)
+            header(
+                key = "X-Session-Token", value = token
+            )
+            setBody(
+                Json.encodeToString(
+                    Requests.ChangePassword(
+                        currentPassword = currentPassword, password = password
+                    )
+                )
+            )
+        }
+        if (request.status.value == 204) {
+            println("Password changed successfully.")
+        } else {
+            println("${request.status.description}, ${request.status.value}")
+        }
+    }
 }

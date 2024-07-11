@@ -6,7 +6,6 @@ suspend fun main() {
     val accountAPI = cloud.tyty.account.API()
 
 
-    accountAPI.createAccount()
 }
 
 
