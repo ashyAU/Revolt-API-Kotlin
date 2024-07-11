@@ -10,4 +10,9 @@ sealed class Requests {
         val invite: String? = null,
         val captcha: String? = null
     )
+    @Serializable
+    data class ResendVerification(
+        val email: String,
+        val captcha: String? = null
+    )
 }

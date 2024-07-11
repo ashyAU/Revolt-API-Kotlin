@@ -9,6 +9,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import javax.swing.text.AbstractDocument.Content
 
 /*
 POST/auth/account/create
@@ -34,6 +35,7 @@ class API {
             })
         }
     }
+
     // Needs to get recaptcha enabled, will need to be done on the client
     suspend fun createAccount() {
         println("enter your new account email")
@@ -49,7 +51,24 @@ class API {
         if (request.status.value == 204) {
             println("Your account has been successfully created, please check your emails to finish the creation process")
         } else {
-            println("${ request.status.description } ${request.status.value }")
+            println("${request.status.description} ${request.status.value}")
+        }
+    }
+    // need to get captcha working 
+    suspend fun resendVerification() {
+        println("What is the email associated with the account?")
+        val email = readln()
+
+        val resendData = Requests.ResendVerification(email = email)
+
+        val request = client.post("${url}/auth/account/reverify") {
+            contentType(ContentType.Application.Json)
+            setBody(Json.encodeToString(resendData))
+        }
+        if (request.status.value == 204) {
+            println("A new verification email has been sent to your account, please allow up to 5 minutes for it to arrive")
+        } else {
+            println("${request.status.description} ${request.status.value}")
         }
     }
 }
