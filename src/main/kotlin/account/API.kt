@@ -9,7 +9,6 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import javax.swing.text.AbstractDocument.Content
 
 /*
 POST/auth/account/create
@@ -148,21 +147,17 @@ class API {
     }
 
     suspend fun changeEmail(
-        email: String,
-        currentPassword: String,
-        token: String
+        email: String, currentPassword: String, token: String
     ) {
         val request = client.patch("${url}/auth/account/change/email") {
             contentType(ContentType.Application.Json)
             header(
-                key = "X-Session-Token",
-                value = token
+                key = "X-Session-Token", value = token
             )
             setBody(
                 Json.encodeToString(
                     Requests.ChangeEmail(
-                        email = email,
-                        currentPassword = currentPassword
+                        email = email, currentPassword = currentPassword
                     )
                 )
             )
@@ -173,4 +168,63 @@ class API {
             println("${request.status.description}, ${request.status.value}")
         }
     }
+
+    suspend fun verifyEmail(
+        code: String
+    ): Response.VerifyEmail {
+        val request = client.post("${url}/auth/account/verify/$code")
+
+        try {
+            return request.body()
+        } catch (e: Exception) {
+            println("An exception has occurred")
+            return request.body()
+        }
+    }
+
+    suspend fun sendPasswordReset(
+        email: String, captcha: String?
+    ) {
+        val request = client.post("${url}/auth/account/reset_password") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                Json.encodeToString(
+                    Requests.SendPasswordReset(
+                        email = email, captcha = captcha
+                    )
+                )
+            )
+        }
+        if (request.status.value == 204) {
+            return
+        } else {
+            println("${request.status.description}, ${request.status.value}")
+            return
+        }
+    }
+    suspend fun passwordReset(      
+        token: String,
+        password: String,
+        removeSessions: Boolean = false
+    ) {
+        val request = client.patch("${url}/auth/account/reset_password") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                Json.encodeToString(
+                    passwordReset(
+                        token = token,
+                        password = password,
+                        removeSessions = removeSessions
+                    )
+                )
+            )
+        }
+        if (request.status.value == 204) {
+            return
+        } else {
+            println("${request.status.description}, ${request.status.value}")
+            return
+        }
+    }
+
 }

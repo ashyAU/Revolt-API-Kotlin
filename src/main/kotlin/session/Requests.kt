@@ -13,4 +13,6 @@ sealed class Requests {
     data class FriendlyName(
         @SerialName("friendly_name") val friendlyName: String?
     )
+
+
 }

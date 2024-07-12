@@ -2,6 +2,7 @@ package cloud.tyty.account
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.io.StreamTokenizer
 
 sealed class Requests {
     @Serializable
@@ -28,6 +29,17 @@ sealed class Requests {
     data class ChangeEmail(
         @SerialName("email") val email: String,
         @SerialName("current_password") val currentPassword: String
+    )
+    @Serializable
+    data class SendPasswordReset(
+        @SerialName("email") val email: String,
+        @SerialName("captcha") val captcha: String?
+    )
+    @Serializable
+    data class PasswordReset(
+        @SerialName("token") val token: String,
+        @SerialName("password") val password: String,
+        @SerialName("remove_sessions") val removeSessions: Boolean = false
     )
 
 }
