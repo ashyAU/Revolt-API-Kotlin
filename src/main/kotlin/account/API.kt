@@ -10,19 +10,6 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-/*
-POST/auth/account/create
-POST/auth/account/reverify
-PUT/auth/account/delete
-POST/auth/account/delete
-GET/auth/account/
-POST/auth/account/disable
-PATCH/auth/account/change/password
-PATCH/auth/account/change/email
-POST/auth/account/verify/{code}
-POST/auth/account/reset_password
-PATCH/auth/account/reset_password
-*/
 
 class API {
     private val url = "https://api.revolt.chat"
@@ -35,20 +22,21 @@ class API {
         }
     }
 
-    // Needs to get recaptcha enabled, will need to be done on the client
     suspend fun createAccount(
         email: String, password: String, invite: String? = null, captcha: String? = null
     ) {
-        val createData = Requests.CreateAccount(
-            email = email, password = password, invite = invite, captcha = captcha
-        )
-
         val request = client.post("${url}/auth/account/create") {
             contentType(ContentType.Application.Json)
-            setBody(Json.encodeToString(createData))
+            setBody(
+                Json.encodeToString(
+                    Requests.CreateAccount(
+                        email = email, password = password, invite = invite, captcha = captcha
+                    )
+                )
+            )
         }
         if (request.status.value == 204) {
-            println("Your account has been successfully created, please check your emails to finish the creation process")
+            return
         } else {
             println("${request.status.description} ${request.status.value}")
         }
@@ -58,16 +46,19 @@ class API {
     suspend fun resendVerification(
         email: String, captcha: String? = null
     ) {
-        val resendData = Requests.ResendVerification(
-            email = email, captcha = captcha
-        )
 
         val request = client.post("${url}/auth/account/reverify") {
             contentType(ContentType.Application.Json)
-            setBody(Json.encodeToString(resendData))
+            setBody(
+                Json.encodeToString(
+                    Requests.ResendVerification(
+                        email = email, captcha = captcha
+                    )
+                )
+            )
         }
         if (request.status.value == 204) {
-            println("A new verification email has been sent to your account, please allow up to 5 minutes for it to arrive")
+            return
         } else {
             println("${request.status.description} ${request.status.value}")
         }
@@ -86,9 +77,8 @@ class API {
                 key = "X-Session-Token", value = token
             )
         }
-
         if (request.status.value == 204) {
-            println("please check your email for a confirmation to delete your account")
+            return
         } else {
             println("${request.status.description}, ${request.status.value}")
         }
@@ -96,18 +86,18 @@ class API {
 
     suspend fun fetchAccount(
         token: String
-    ) {
+    ): Response.FetchAccount? {
         val request = client.get("${url}/auth/account") {
             header(
                 key = "X-Session-Token", value = token
             )
         }
         if (request.status.value == 200) {
-            val body = request.body<Response.FetchAccount>()
-            println("${body.id}, ${body.email}")
+            return request.body()
         } else {
             println("${request.status.description}, ${request.status.value}")
         }
+        return null
     }
 
     suspend fun disableAccount(token: String) {
@@ -117,7 +107,7 @@ class API {
             )
         }
         if (request.status.value == 204) {
-            println("Your account is disabled")
+            return
         } else {
             println("${request.status.description}, ${request.status.value}")
         }
@@ -140,7 +130,7 @@ class API {
             )
         }
         if (request.status.value == 204) {
-            println("Password changed successfully.")
+            return
         } else {
             println("${request.status.description}, ${request.status.value}")
         }
@@ -163,7 +153,7 @@ class API {
             )
         }
         if (request.status.value == 204) {
-            println("Password changed successfully.")
+            return
         } else {
             println("${request.status.description}, ${request.status.value}")
         }
@@ -171,15 +161,15 @@ class API {
 
     suspend fun verifyEmail(
         code: String
-    ): Response.VerifyEmail {
+    ): Response.VerifyEmail? {
         val request = client.post("${url}/auth/account/verify/$code")
 
-        try {
+        if (request.status.value == 200) {
             return request.body()
-        } catch (e: Exception) {
-            println("An exception has occurred")
-            return request.body()
+        } else {
+            println("${request.status.description}, ${request.status.value}")
         }
+        return null
     }
 
     suspend fun sendPasswordReset(
@@ -199,22 +189,18 @@ class API {
             return
         } else {
             println("${request.status.description}, ${request.status.value}")
-            return
         }
     }
-    suspend fun passwordReset(      
-        token: String,
-        password: String,
-        removeSessions: Boolean = false
+
+    suspend fun passwordReset(
+        token: String, password: String, removeSessions: Boolean = false
     ) {
         val request = client.patch("${url}/auth/account/reset_password") {
             contentType(ContentType.Application.Json)
             setBody(
                 Json.encodeToString(
                     passwordReset(
-                        token = token,
-                        password = password,
-                        removeSessions = removeSessions
+                        token = token, password = password, removeSessions = removeSessions
                     )
                 )
             )
@@ -223,8 +209,6 @@ class API {
             return
         } else {
             println("${request.status.description}, ${request.status.value}")
-            return
         }
     }
-
 }
