@@ -7,16 +7,12 @@ import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.util.*
-import kotlin.system.exitProcess
 
 class API {
     private val url = "https://api.revolt.chat"
-    private var token: String = ""
 
     private val client = HttpClient(OkHttp) {
         install(ContentNegotiation) {
@@ -26,56 +22,49 @@ class API {
         }
     }
 
-    // intention to store the token and other data in a database
-    suspend fun login() {
-        println("enter your email:")
-        val email = readln()
-        println("enter your password:")
-        val password = readln()
-
-        val loginData = Requests.Login(email = email, password = password)
-
+    suspend fun login(
+        email: String, password: String, friendlyName: String?
+    ): Requests.Login? {
         val response = client.post(
             "${url}/auth/session/login"
         ) {
             contentType(ContentType.Application.Json)
-            setBody(Json.encodeToString(loginData))
-        }.body<Response.Login>()
-
-        if (response.result == "Success") {
-            println("you have successfully logged in ${response.userId}")
-            token = response.token
-        } else {
-            println("you have failed to login: Response ${response.result}")
-            login()
+            setBody(
+                Json.encodeToString(
+                    Requests.Login(
+                        email = email, password = password, friendlyName = friendlyName
+                    )
+                )
+            )
         }
+
+        if (response.status.value == 200) {
+            return response.body()
+        } else {
+            println("${response.status.description}, ${response.status.value}")
+        }
+        return null
     }
 
-    suspend fun logout() {
-        println("would you like to logout? y/n")
-        val response = readln()
-        val logout = client.post(
+    suspend fun logout(
+        token: String
+    ) {
+        val response = client.post(
             "${url}/auth/session/logout"
         ) {
             header(
                 key = "X-Session-Token", value = token
             )
         }
-        if (response.lowercase(Locale.getDefault()) == "y") {
-            if (logout.status.isSuccess()) {
-                println("user logged out successfully: Status code ${logout.status}")
-                exitProcess(-1)
-            } else {
-                println("An exception has occurred: Status code ${logout.status}")
-            }
+        if (response.status.value == 204) {
+            return
         } else {
-            logout()
+            println("${response.status.description}, ${response.status.value}")
         }
     }
 
-    suspend fun fetchSessions() {
-        println("would you like a list of currently logged in sessions?")
-        val sessions = client.get(
+    suspend fun fetchSessions(token: String): List<Response.Sessions>? {
+        val response = client.get(
             "${url}/auth/session/all"
         ) {
             header(
@@ -83,76 +72,60 @@ class API {
             )
         }
         // can't do sessions.status.OK. Weird import issue with Ktor :/
-        if (sessions.status.value == 200) {
-            val sessionsList = sessions.body<List<Response.Sessions>>()
-            sessionsList.forEach {
-                println(it.name)
-            }
-
+        if (response.status.value == 200) {
+            return response.body<List<Response.Sessions>>()
         } else {
-            println("An unknown error has occurred")
+            println("${response.status.description}, ${response.status.value}")
         }
+        return null
     }
 
-    suspend fun deleteSessions() {
+    suspend fun deleteSessions(token: String) {
         println("Log out of all other sessions?")
-        val response = readln()
 
-        val sessions = client.delete(
+        val response = client.delete(
             "${url}/auth/session/"
         ) {
             header(
                 key = "X-Session-Token", value = token
             )
         }
-        if (response.lowercase(Locale.getDefault()) == "y") {
-            if (sessions.status.isSuccess()) {
-                println("You have successfully signed out of all other sessions")
-            } else {
-                println("An unknown error has occurred.")
-            }
+        if (response.status.value == 204) {
+            return
         } else {
-            exitProcess(-1)
+            println("${response.status.description}, ${response.status.value}")
         }
     }
 
-    suspend fun revokeSession() {
-        println("Which session would you like to delete?")
-        val response = readln()
-        val sessions = client.delete(
-            "${url}/auth/session/$response"
+    suspend fun revokeSession(friendlyName: String?, token: String, id: String) {
+        val response = client.delete(
+            "${url}/auth/session/$id"
         ) {
             header(
                 key = "X-Session-Token", value = token
             )
         }
-        if (sessions.status.isSuccess()) {
-            println("You have successfully revoked that session")
+        if (response.status.value == 204) {
+            return
         } else {
-            println("An unknown error has occurred.")
+            println("${response.status.description}, ${response.status.value}")
         }
     }
 
-    suspend fun editSession() {
-        println("Which session would you like to update?")
-        val response = readln()
-
-        println("What would you like the updated session name to be?")
-        val friendlyNameNew = readln()
-        val session = client.patch("${url}/auth/session/$response") {
+    suspend fun editSession(id: String, token: String, newFriendlyName: String?) {
+        val response = client.patch("${url}/auth/session/$id") {
             contentType(ContentType.Application.Json)
             header(
                 key = "X-Session-Token", value = token
             )
             setBody(
-                Json.encodeToString(Requests.FriendlyName(friendlyNameNew))
+                Json.encodeToString(Requests.FriendlyName(newFriendlyName))
             )
         }
-        val sessionResponse = session.body<Response.Sessions>()
-        if (session.status.value == 200) {
-            println("Updated session data for ${sessionResponse.id} \n Current Name: ${sessionResponse.name}")
+        if (response.status.value == 200) {
+            return
         } else {
-            println("Failed to update name based on the supplied id")
+            println("${response.status.description}, ${response.status.value}")
         }
     }
 }

@@ -8,8 +8,9 @@ sealed class Requests {
     data class Login(
         @SerialName("email") val email: String,
         @SerialName("password") val password: String,
-        @SerialName("friendly_name") val friendlyName: String? = "default"
+        @SerialName("friendly_name") val friendlyName: String?
     )
+    @Serializable
     data class FriendlyName(
         @SerialName("friendly_name") val friendlyName: String?
     )

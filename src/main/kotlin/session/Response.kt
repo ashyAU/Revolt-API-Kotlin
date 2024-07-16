@@ -11,16 +11,15 @@ sealed class Response {
         @SerialName("user_id") val userId: String,
         @SerialName("token") val token: String,
         @SerialName("name") val name: String,
-/*
         @SerialName("subscription") val subscription: Subscription
-*/
+
     )
-/*    @Serializable
+    @Serializable
     data class Subscription(
         @SerialName("endpoint") val endpoint: String,
         @SerialName("p256dh") val p256dh: String,
         @SerialName("auth") val auth: String
-    )*/
+    )
 
     @Serializable
     data class Sessions(
